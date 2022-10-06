@@ -1,31 +1,70 @@
 module Main exposing (main)
 
 import Browser
-import HelloWorld exposing (helloWorld)
 import Html exposing (Html, div, img)
 import Html.Attributes exposing (src, style)
-import Msg exposing (Msg(..))
-import VitePluginHelper
 
 
-main : Program () Int Msg
+main : Program () Model Msg
 main =
-    Browser.sandbox { init = 0, update = update, view = view }
+    Browser.sandbox { init = init, update = update, view = view }
 
 
-update : Msg -> number -> number
+type State
+    = Done
+    | InProgress
+    | Stalled
+
+
+type alias Todo =
+    { id : Int
+    , description : String
+    , state : State
+    }
+
+
+type alias TodoList =
+    List Todo
+
+
+type alias Model =
+    { todos : TodoList
+    }
+
+
+init : Model
+init =
+    { todos = []
+    }
+
+
+type Msg
+    = AddTodo String
+
+
+update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Increment ->
-            model + 1
-
-        Decrement ->
-            model - 1
+        AddTodo description ->
+            { model | todos = addTodo model.todos description }
 
 
-view : Int -> Html Msg
+view : Model -> Html Msg
 view model =
     div []
-        [ img [ src <| VitePluginHelper.asset "/src/assets/logo.png?inline", style "width" "300px" ] []
-        , helloWorld model
-        ]
+        []
+
+
+createNewTodo : Int -> String -> Todo
+createNewTodo id description =
+    Todo id description Stalled
+
+
+nextId : TodoList -> Int
+nextId todoList =
+    List.length todoList + 1
+
+
+addTodo : TodoList -> String -> TodoList
+addTodo prevTodoList description =
+    prevTodoList ++ [ createNewTodo (nextId prevTodoList) description ]
