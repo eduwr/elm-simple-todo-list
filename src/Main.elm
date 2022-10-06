@@ -24,6 +24,10 @@ type alias Todo =
     }
 
 
+
+-- Refactor to use Dictionary
+
+
 type alias TodoList =
     List Todo
 
@@ -60,8 +64,8 @@ update msg model =
         ChangeNewTodo newTodo ->
             { model | newTodo = newTodo }
 
-        UpdateState id newState ->
-            { model | todos = updateListItemState model.todos id newState }
+        UpdateState id state ->
+            { model | todos = updateListItemState model.todos id (getNextState state) }
 
 
 view : Model -> Html Msg
@@ -73,6 +77,15 @@ view model =
             ]
         , ul [ class "todo-list" ]
             (model.todos |> List.map buildTodoItem)
+        ]
+
+
+buildTodoItem : Todo -> Html Msg
+buildTodoItem todo =
+    li [ class (getClassByState todo.state "todo-item") ]
+        [ span [] [ text todo.description ]
+        , button [ type_ "button", onClick (UpdateState todo.id todo.state) ] [ text "Update State" ]
+        , button [ type_ "button", onClick (DeleteTodo todo.id) ] [ text "Delete" ]
         ]
 
 
@@ -119,15 +132,6 @@ getNextState state =
 
     else
         Stalled
-
-
-buildTodoItem : Todo -> Html Msg
-buildTodoItem todo =
-    li [ class (getClassByState todo.state "todo-item") ]
-        [ span [] [ text todo.description ]
-        , button [ type_ "button", onClick (UpdateState todo.id (getNextState todo.state)) ] [ text "Update State" ]
-        , button [ type_ "button", onClick (DeleteTodo todo.id) ] [ text "Delete" ]
-        ]
 
 
 getClassByState : State -> String -> String
