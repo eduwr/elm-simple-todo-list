@@ -11,3 +11,19 @@
 a {
   color: #60b5cc;
 }
+
+li {
+  list-style: none;
+}
+
+.todo-list .todo-item.done {
+  text-decoration: line-through;
+}
+
+.todo-list .todo-item.in-progress {
+  color: green;
+}
+
+.todo-list .todo-item.stalled {
+  color: grey;
+}

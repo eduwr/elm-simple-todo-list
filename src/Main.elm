@@ -1,8 +1,8 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, button, div, img, input, text)
-import Html.Attributes exposing (placeholder, src, style, type_, value)
+import Html exposing (Html, button, div, form, img, input, li, p, span, text, ul)
+import Html.Attributes exposing (class, placeholder, src, style, type_, value)
 import Html.Events exposing (onClick, onInput)
 
 
@@ -45,13 +45,14 @@ type Msg
     = AddTodo
     | DeleteTodo Int
     | ChangeNewTodo String
+    | UpdateState Int State
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
         AddTodo ->
-            { model | todos = addTodo model.todos model.newTodo }
+            { model | todos = addTodo model.todos model.newTodo, newTodo = "" }
 
         DeleteTodo id ->
             { model | todos = deleteTodo model.todos id }
@@ -59,12 +60,19 @@ update msg model =
         ChangeNewTodo newTodo ->
             { model | newTodo = newTodo }
 
+        UpdateState id newState ->
+            { model | todos = updateListItemState model.todos id newState }
+
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ input [ type_ "text", placeholder "Type a new todo", value model.newTodo, onInput ChangeNewTodo ] []
-        , button [ onClick AddTodo ] [ text "Add Todo" ]
+    div [ class "container" ]
+        [ div [ class "form-input" ]
+            [ input [ type_ "text", placeholder "Type a new todo", value model.newTodo, onInput ChangeNewTodo ] []
+            , button [ type_ "button", onClick AddTodo ] [ text "Add Todo" ]
+            ]
+        , ul [ class "todo-list" ]
+            (model.todos |> List.map buildTodoItem)
         ]
 
 
@@ -83,6 +91,52 @@ addTodo prevTodoList description =
     prevTodoList ++ [ createNewTodo (nextId prevTodoList) description ]
 
 
+updateListItemState : TodoList -> Int -> State -> TodoList
+updateListItemState prevTodoList id newState =
+    prevTodoList
+        |> List.map
+            (\todo ->
+                if todo.id == id then
+                    { todo | state = newState }
+
+                else
+                    todo
+            )
+
+
 deleteTodo : TodoList -> Int -> TodoList
 deleteTodo oldList id =
     List.filter (\todo -> todo.id /= id) oldList
+
+
+getNextState : State -> State
+getNextState state =
+    if state == Stalled then
+        InProgress
+
+    else if state == InProgress then
+        Done
+
+    else
+        Stalled
+
+
+buildTodoItem : Todo -> Html Msg
+buildTodoItem todo =
+    li [ class (getClassByState todo.state "todo-item") ]
+        [ span [] [ text todo.description ]
+        , button [ type_ "button", onClick (UpdateState todo.id (getNextState todo.state)) ] [ text "Update State" ]
+        , button [ type_ "button", onClick (DeleteTodo todo.id) ] [ text "Delete" ]
+        ]
+
+
+getClassByState : State -> String -> String
+getClassByState state prepend =
+    if state == Stalled then
+        prepend ++ " stalled"
+
+    else if state == InProgress then
+        prepend ++ " in-progress"
+
+    else
+        prepend ++ " done"
