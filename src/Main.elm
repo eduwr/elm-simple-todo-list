@@ -40,6 +40,7 @@ init =
 
 type Msg
     = AddTodo String
+    | DeleteTodo Int
 
 
 update : Msg -> Model -> Model
@@ -47,6 +48,9 @@ update msg model =
     case msg of
         AddTodo description ->
             { model | todos = addTodo model.todos description }
+
+        DeleteTodo id ->
+            { model | todos = deleteTodo model.todos id }
 
 
 view : Model -> Html Msg
@@ -68,3 +72,8 @@ nextId todoList =
 addTodo : TodoList -> String -> TodoList
 addTodo prevTodoList description =
     prevTodoList ++ [ createNewTodo (nextId prevTodoList) description ]
+
+
+deleteTodo : TodoList -> Int -> TodoList
+deleteTodo oldList id =
+    List.filter (\todo -> todo.id /= id) oldList
