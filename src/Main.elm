@@ -1,8 +1,9 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, div, img)
-import Html.Attributes exposing (src, style)
+import Html exposing (Html, button, div, img, input, text)
+import Html.Attributes exposing (placeholder, src, style, type_, value)
+import Html.Events exposing (onClick, onInput)
 
 
 main : Program () Model Msg
@@ -29,34 +30,42 @@ type alias TodoList =
 
 type alias Model =
     { todos : TodoList
+    , newTodo : String
     }
 
 
 init : Model
 init =
     { todos = []
+    , newTodo = ""
     }
 
 
 type Msg
-    = AddTodo String
+    = AddTodo
     | DeleteTodo Int
+    | ChangeNewTodo String
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        AddTodo description ->
-            { model | todos = addTodo model.todos description }
+        AddTodo ->
+            { model | todos = addTodo model.todos model.newTodo }
 
         DeleteTodo id ->
             { model | todos = deleteTodo model.todos id }
+
+        ChangeNewTodo newTodo ->
+            { model | newTodo = newTodo }
 
 
 view : Model -> Html Msg
 view model =
     div []
-        []
+        [ input [ type_ "text", placeholder "Type a new todo", value model.newTodo, onInput ChangeNewTodo ] []
+        , button [ onClick AddTodo ] [ text "Add Todo" ]
+        ]
 
 
 createNewTodo : Int -> String -> Todo
